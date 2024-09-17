@@ -1,0 +1,8 @@
+# 
+TODOs
+
+# ignore notebooks
+*.ipynb
+
+# ignore data volume
+*.mp3
