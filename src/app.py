@@ -11,10 +11,9 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
-from tts.polly import Polly
+from .tts.polly import Polly
 
 templates = Jinja2Templates(directory="templates")
 
