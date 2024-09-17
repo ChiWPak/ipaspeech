@@ -5,58 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPA Pronunciation Player</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <link href="{{ url_for('static', path='/default.css') }}" rel="stylesheet">
 </head>
 <body>
-    <form id="ipa-form-ws">
-        <input type="text" id="ipa-input-ws" placeholder="Enter IPA text">
-        <button type="submit">Convert to Speech</button>
-    </form>
-    <form id="ipa-form-polly">
-        <input type="text" id="ipa-input-polly" placeholder="Enter IPA text">
+    <select id="api-select">
+        <option value="webspeech">Web Speech API</option>
+        <option value="polly">Amazon Polly API</option>
+    </select>
+    <form id="ipa-form">
+        <input type="text" id="ipa-input" placeholder="Enter IPA text naɪf">
         <button type="submit">Convert to Speech</button>
     </form>
     <div id="status"></div>
     <audio id="polly-speech"></audio>
-
+    
     <script>
-        const form_ws = document.getElementById('ipa-form-ws');
-        const input_ws = document.getElementById('ipa-input-ws');
-        const status_ws = document.getElementById('status');
+        const form = document.getElementById('ipa-form');
+        const input = document.getElementById('ipa-input');
+        const status = document.getElementById('status');
+        const polly = document.getElementById('polly-speech');
+        const apiSelect = document.getElementById('api-select');
 
-        form_ws.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const ipaText = input_ws.value;
-            
-            // Generate speech
+            const ipaText = input.value;
+            const selectedApi = apiSelect.value;
+
+            if (selectedApi === 'webspeech') {
+                useWebSpeechAPI(ipaText);
+            } else if (selectedApi === 'polly') {
+                await usePollyAPI(ipaText);
+            }
+        });
+
+        function useWebSpeechAPI(ipaText) {
             const utterance = new SpeechSynthesisUtterance(ipaText);
-            utterance.lang = 'en-US'; // You can change this to other languages if needed
+            utterance.lang = 'en-US';
             
-            // Speak the text
+            status.innerHTML = 'Speech synthesis in progress...';
+            
             speechSynthesis.speak(utterance);
             
-            // Create audio player (optional, for visual feedback)
-            status_ws.innerHTML = 'Speech synthesis in progress...';
-            
             utterance.onend = () => {
-                status_ws.innerHTML = 'Speech synthesis completed.';
+                status.innerHTML = 'Speech synthesis completed.';
             };
-        });
-    </script>
-    <script>
-        const form_polly = document.getElementById('ipa-form-polly');
-        const input_polly = document.getElementById('ipa-input-polly');
-        const status_polly = document.getElementById('status');
-        const audio_polly = document.getElementById('polly-speech')
+        }
 
-        form_polly.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const ipaText = input_polly.value;
-
+        async function usePollyAPI(ipaText) {
             const formData = new FormData();
             formData.append('text', `<speak><phoneme alphabet="ipa" ph="${ipaText}">text</phoneme></speak>`);
 
             try {
-                // Make request to the API
                 const response = await fetch('/tts/polly', {
                     method: 'POST',
                     body: formData
@@ -66,25 +65,23 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                // Get the audio blob from the response
                 const audioBlob = await response.blob();
-
-                // Create a URL for the audio blob
                 const audioUrl = URL.createObjectURL(audioBlob);
 
-                // Set the audio player source to the new URL
-                audio_polly.src = audioUrl;
-                audio_polly.play();
+                polly.src = audioUrl;
+                polly.play();
 
-                audio_polly.onended = () => {
-                    status_polly.innerHTML = 'Speech synthesis completed.';
+                status.innerHTML = 'Speech synthesis in progress...';
+
+                polly.onended = () => {
+                    status.innerHTML = 'Speech synthesis completed.';
                 };
 
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
-                status_polly.innerHTML = 'Error in speech synthesis.';
+                status.innerHTML = 'Error in speech synthesis.';
             }
-        });
+        }
     </script>
 </body>
 </html>
