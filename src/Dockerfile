@@ -28,6 +28,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application files
 COPY __init__.py app.py logging.config.yml ./
 COPY routers ./routers
+COPY static ./static
 COPY templates ./templates
 
 ENV POLLY_HOME_PATH="/app/data/polly"

@@ -6,12 +6,11 @@ from fastapi import (
     Request
 )
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.cors import CORSMiddleware
 
 from routers import tts
-
-templates = Jinja2Templates(directory="templates")
 
 app = FastAPI(
     title="IPA",
@@ -27,6 +26,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/", response_class=RedirectResponse, include_in_schema=False)
