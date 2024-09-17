@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import os
-from functools import cached_property
 
 import boto3
 
@@ -22,11 +21,16 @@ class Polly:
     def __init__(self):
         pass
 
-    @cached_property
+    @property
     def polly(self):
         """boto3 Polly client
         """
         return polly_client
+
+    @property
+    def audio_path(self) -> str:
+        """Audio path"""
+        return f"{POLLY_HOME_PATH}/speech.mp3"
 
     def tts(
             self,
@@ -53,8 +57,3 @@ class Polly:
         """
         with open(self.audio_path, "wb") as f:
             f.write(response["AudioStream"].read())
-
-    @cached_property
-    def audio_path(self) -> str:
-        """Audio path"""
-        return f"{POLLY_HOME_PATH}/speech.mp3"

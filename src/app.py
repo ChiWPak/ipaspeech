@@ -2,18 +2,14 @@
 """
 
 from fastapi import (
-    Depends,
     FastAPI,
-    Form,
-    HTTPException,
-    Path,
     Request
 )
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.cors import CORSMiddleware
 
-from .tts.polly import Polly
+from routers import tts
 
 templates = Jinja2Templates(directory="templates")
 
@@ -51,17 +47,4 @@ async def homepage(request: Request):
     return templates.TemplateResponse("index.html", context={"request": request})
 
 
-def get_tts_client(provider: str = Path(...)):
-    """Get TTS client based on provider"""
-    if provider == "polly":
-        tts_client = Polly()
-    else:
-        raise HTTPException(f"Provider {provider} is not supported.")
-    return tts_client
-
-
-@app.post("/tts/{provider}", status_code=200, response_class=FileResponse, include_in_schema=False)
-async def polly(text: str = Form(...), tts_client = Depends(get_tts_client)):
-    """Polly text to speech"""
-    tts_client.tts(text=text)
-    return FileResponse(path=tts_client.audio_path, media_type="mp3")
+app.include_router(tts.router)
