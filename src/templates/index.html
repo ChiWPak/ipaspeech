@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPA Pronunciation Player</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-    <link href="{{ url_for('static', path='/default.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='/default.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/favicon.ico') }}" type="image/x-icon">
+
 </head>
 <body>
     <select id="api-select">
-        <option value="webspeech">Web Speech API</option>
-        <option value="polly">Amazon Polly API</option>
+        <option value="webspeech">Web Speech</option>
+        <option value="polly">Amazon Polly</option>
     </select>
     <form id="ipa-form">
         <input type="text" id="ipa-input" placeholder="Enter IPA text naɪf">
