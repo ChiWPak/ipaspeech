@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPA Pronunciation Player</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/default.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/favicon.ico') }}" type="image/x-icon">
+
+</head>
+<body>
+    <select id="api-select">
+        <option value="webspeech">Web Speech</option>
+        <option value="polly">Amazon Polly</option>
+    </select>
+    <form id="ipa-form">
+        <input type="text" id="ipa-input" placeholder="Enter IPA text naɪf">
+        <button type="submit">Convert to Speech</button>
+    </form>
+    <div id="status"></div>
+    <audio id="polly-speech"></audio>
+    
+    <script>
+        const form = document.getElementById('ipa-form');
+        const input = document.getElementById('ipa-input');
+        const status = document.getElementById('status');
+        const polly = document.getElementById('polly-speech');
+        const apiSelect = document.getElementById('api-select');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ipaText = input.value;
+            const selectedApi = apiSelect.value;
+
+            if (selectedApi === 'webspeech') {
+                useWebSpeechAPI(ipaText);
+            } else if (selectedApi === 'polly') {
+                await usePollyAPI(ipaText);
+            }
+        });
+
+        function useWebSpeechAPI(ipaText) {
+            const utterance = new SpeechSynthesisUtterance(ipaText);
+            utterance.lang = 'en-US';
+            
+            status.innerHTML = 'Speech synthesis in progress...';
+            
+            speechSynthesis.speak(utterance);
+            
+            utterance.onend = () => {
+                status.innerHTML = 'Speech synthesis completed.';
+            };
+        }
+
+        async function usePollyAPI(ipaText) {
+            const formData = new FormData();
+            formData.append('text', `<speak><phoneme alphabet="ipa" ph="${ipaText}">text</phoneme></speak>`);
+
+            try {
+                const response = await fetch('/tts/polly', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                polly.src = audioUrl;
+                polly.play();
+
+                status.innerHTML = 'Speech synthesis in progress...';
+
+                polly.onended = () => {
+                    status.innerHTML = 'Speech synthesis completed.';
+                };
+
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                status.innerHTML = 'Error in speech synthesis.';
+            }
+        }
+    </script>
+</body>
+</html>
